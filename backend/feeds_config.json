@@ -1,0 +1,197 @@
+{
+  "sources": [
+    {
+      "id": "cnbc",
+      "name": "CNBC",
+      "color": "#00A0E1",
+      "publisher": "CNBC LLC (NBCUniversal)",
+      "type": "Finance TV / digital",
+      "homepage": "https://www.cnbc.com/markets/",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://www.cnbc.com/id/10001147/device/rss/rss.html",
+        "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147",
+        "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+      ]
+    },
+    {
+      "id": "reuters",
+      "name": "Reuters",
+      "color": "#FF8000",
+      "publisher": "Thomson Reuters",
+      "type": "Wire service",
+      "homepage": "https://www.reuters.com/markets/",
+      "enabled": false,
+      "fetch_mode": "disabled",
+      "rss_urls": [],
+      "notes": "Public markets RSS / site returns 401 Unauthorized from this network (verified 2026-07). Re-enable if a working feed appears; see README."
+    },
+    {
+      "id": "bloomberg",
+      "name": "Bloomberg",
+      "color": "#2800D7",
+      "publisher": "Bloomberg L.P.",
+      "type": "Finance media",
+      "homepage": "https://www.bloomberg.com/markets",
+      "enabled": false,
+      "fetch_mode": "disabled",
+      "rss_urls": [],
+      "notes": "Site and feeds return 403 Forbidden without Bloomberg credentials (verified 2026-07). Not scrapable reliably."
+    },
+    {
+      "id": "economictimes",
+      "name": "Economic Times",
+      "color": "#ED1C24",
+      "publisher": "Bennett, Coleman & Co. Ltd. (Times Group)",
+      "type": "Business daily",
+      "homepage": "https://economictimes.indiatimes.com/markets",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+        "https://economictimes.indiatimes.com/rssfeedsdefault.cms"
+      ]
+    },
+    {
+      "id": "moneycontrol",
+      "name": "Moneycontrol",
+      "color": "#D32F2F",
+      "publisher": "Network18 Media & Investments Ltd.",
+      "type": "Finance portal",
+      "homepage": "https://www.moneycontrol.com/",
+      "enabled": false,
+      "fetch_mode": "disabled",
+      "rss_urls": [],
+      "notes": "RSS and HTML both return 403 (verified 2026-07). Use CNBC-TV18 / Business Today as Indian market coverage instead."
+    },
+    {
+      "id": "financialexpress",
+      "name": "Financial Express",
+      "color": "#1A5276",
+      "publisher": "Indian Express Group",
+      "type": "Business daily",
+      "homepage": "https://www.financialexpress.com/market/",
+      "enabled": true,
+      "fetch_mode": "scrape",
+      "rss_urls": [],
+      "scrape_urls": [
+        "https://www.financialexpress.com/market/"
+      ],
+      "notes": "WordPress /feed endpoints return empty or HTML; headlines scraped from market page."
+    },
+    {
+      "id": "marketwatch",
+      "name": "MarketWatch",
+      "color": "#2E7D32",
+      "publisher": "Dow Jones & Company",
+      "type": "Finance portal",
+      "homepage": "https://www.marketwatch.com/",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+        "https://www.marketwatch.com/rss/topstories"
+      ]
+    },
+    {
+      "id": "yahoofinance",
+      "name": "Yahoo Finance",
+      "color": "#6001D2",
+      "publisher": "Yahoo (Apollo Global Management)",
+      "type": "Finance portal",
+      "homepage": "https://finance.yahoo.com/",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://finance.yahoo.com/news/rssindex"
+      ]
+    },
+    {
+      "id": "livemint",
+      "name": "Mint",
+      "color": "#00A651",
+      "publisher": "HT Media Ltd.",
+      "type": "Business daily",
+      "homepage": "https://www.livemint.com/market",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://www.livemint.com/rss/markets",
+        "https://www.livemint.com/rss/money"
+      ]
+    },
+    {
+      "id": "investing",
+      "name": "Investing.com",
+      "color": "#F57C00",
+      "publisher": "Fusion Media Ltd.",
+      "type": "Markets portal",
+      "homepage": "https://www.investing.com/news/stock-market-news",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://www.investing.com/rss/news_25.rss",
+        "https://www.investing.com/rss/news.rss"
+      ]
+    },
+    {
+      "id": "cnbctv18",
+      "name": "CNBC-TV18",
+      "color": "#0D47A1",
+      "publisher": "TV18 Broadcast Ltd. (Network18)",
+      "type": "Finance TV / digital",
+      "homepage": "https://www.cnbctv18.com/market/",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://www.cnbctv18.com/commonfeeds/v1/cne/rss/market.xml"
+      ],
+      "notes": "Strong Indian markets feed; stand-in coverage while Moneycontrol is blocked."
+    },
+    {
+      "id": "businesstoday",
+      "name": "Business Today",
+      "color": "#C62828",
+      "publisher": "Living Media India Ltd.",
+      "type": "Business magazine / digital",
+      "homepage": "https://www.businesstoday.in/markets",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://www.businesstoday.in/rss/markets"
+      ]
+    },
+    {
+      "id": "businessline",
+      "name": "Business Line",
+      "color": "#1565C0",
+      "publisher": "The Hindu Group",
+      "type": "Business daily",
+      "homepage": "https://www.thehindubusinessline.com/markets/",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://www.thehindubusinessline.com/markets/feeder/default.rss"
+      ]
+    },
+    {
+      "id": "wsjmarkets",
+      "name": "WSJ Markets",
+      "color": "#0274B6",
+      "publisher": "Dow Jones & Company",
+      "type": "Business newspaper",
+      "homepage": "https://www.wsj.com/news/markets",
+      "enabled": true,
+      "fetch_mode": "rss",
+      "rss_urls": [
+        "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+      ],
+      "notes": "Public Dow Jones markets RSS (not full WSJ paywall site)."
+    }
+  ],
+  "refresh_interval_minutes": 5,
+  "story_group_window_hours": 24,
+  "similarity_threshold": 0.36,
+  "symbol_boost": 0.12
+}

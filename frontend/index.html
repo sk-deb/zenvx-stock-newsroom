@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ZenvX StockMarket Newsroom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #06080d;
+      --bg-elevated: #0c0f16;
+      --bg-card: #10141e;
+      --bg-card-hover: #151a27;
+      --border: #1c2233;
+      --border-glow: #163d32;
+      --text: #e9edf5;
+      --text-muted: #8b93a7;
+      --text-dim: #5a6276;
+      --green: #00FF88;
+      --cyan: #00D4FF;
+      --purple: #9F7AEA;
+      --red: #ff5c7a;
+      --amber: #ffc14a;
+      --radius: 14px;
+      --shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background:
+        radial-gradient(1000px 500px at 5% -5%, rgba(0,255,136,.07), transparent 50%),
+        radial-gradient(900px 480px at 95% 0%, rgba(0,212,255,.06), transparent 45%),
+        radial-gradient(700px 360px at 50% 100%, rgba(159,122,234,.05), transparent 40%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    .app { max-width: 1360px; margin: 0 auto; padding: 1.15rem 1.15rem 3rem; }
+
+    header.top {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 1rem; padding: 1rem 1.2rem;
+      background: linear-gradient(135deg, rgba(12,15,22,.96), rgba(16,20,30,.92));
+      border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); backdrop-filter: blur(12px);
+      position: sticky; top: .7rem; z-index: 50;
+    }
+    .brand { display: flex; align-items: center; gap: .85rem; }
+    .logo-mark {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      display: grid; place-items: center;
+      font-family: Syne, sans-serif; font-weight: 800; color: #04120c; font-size: .85rem;
+      box-shadow: 0 0 24px rgba(0,255,136,.35);
+    }
+    .brand h1 {
+      font-family: Syne, sans-serif; font-size: 1.28rem; font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(90deg, var(--green), var(--cyan) 55%, var(--purple));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .brand .tag {
+      font-family: "Space Mono", monospace; font-size: .66rem;
+      color: var(--text-muted); letter-spacing: .04em; text-transform: uppercase;
+    }
+    .header-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem 1rem; }
+    .live-pill {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .32rem .7rem; border-radius: 999px;
+      background: rgba(0,255,136,.1); border: 1px solid rgba(0,255,136,.35);
+      font-family: "Space Mono", monospace; font-size: .7rem;
+      color: var(--green); text-transform: uppercase; letter-spacing: .05em;
+    }
+    .live-pill .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 10px var(--green); animation: pulse 1.5s ease-in-out infinite;
+    }
+    .live-pill.offline { color: var(--amber); background: rgba(255,193,74,.1); border-color: rgba(255,193,74,.35); }
+    .live-pill.offline .dot { background: var(--amber); box-shadow: 0 0 10px var(--amber); animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .sync-time, .fetch-ms {
+      font-family: "Space Mono", monospace; font-size: .72rem; color: var(--text-muted);
+    }
+    .fetch-ms { color: var(--cyan); }
+
+    button.btn, .btn {
+      font-family: "Space Mono", monospace; font-size: .72rem;
+      border: 1px solid rgba(0,212,255,.4); background: rgba(0,212,255,.08);
+      color: var(--cyan); padding: .48rem .85rem; border-radius: 10px;
+      cursor: pointer; transition: .15s; text-decoration: none; display: inline-flex; align-items: center;
+    }
+    button.btn:hover, .btn:hover { background: rgba(0,212,255,.16); border-color: var(--cyan); }
+    button.btn:disabled { opacity: .5; cursor: wait; }
+    button.btn.ghost, .btn.ghost { border-color: var(--border); background: transparent; color: var(--text-muted); }
+    button.btn.ghost:hover, .btn.ghost:hover { color: var(--text); border-color: var(--text-dim); }
+    button.btn.green { border-color: rgba(0,255,136,.4); background: rgba(0,255,136,.1); color: var(--green); }
+
+    .pulse-strip {
+      margin-top: 1rem; padding: .75rem 1rem;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .65rem;
+    }
+    .pulse-strip .plabel {
+      font-family: "Space Mono", monospace; font-size: .68rem;
+      color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em;
+      margin-right: .25rem;
+    }
+    .sym-pill {
+      font-family: "Space Mono", monospace; font-size: .72rem; font-weight: 700;
+      padding: .28rem .55rem; border-radius: 8px; cursor: pointer;
+      background: rgba(0,255,136,.08); border: 1px solid rgba(0,255,136,.28);
+      color: var(--green); transition: .15s;
+    }
+    .sym-pill:hover, .sym-pill.active {
+      background: rgba(0,255,136,.18); border-color: var(--green);
+      box-shadow: 0 0 14px rgba(0,255,136,.2);
+    }
+    .sym-pill .n { opacity: .65; font-weight: 400; margin-left: .25rem; font-size: .65rem; }
+    .sym-pill.clear { color: var(--text-muted); border-color: var(--border); background: transparent; }
+
+    /* Desk sections */
+    .desk {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 980px) { .desk { grid-template-columns: 1fr; } }
+
+    .panel {
+      margin-top: 1rem; background: var(--bg-elevated);
+      border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    }
+    .panel.flat { margin-top: 0; }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: .8rem 1.05rem; cursor: pointer; user-select: none;
+    }
+    .panel-head.static { cursor: default; }
+    .panel.open .panel-head { border-bottom: 1px solid var(--border); }
+    .panel-head h2 {
+      font-family: Syne, sans-serif; font-size: .95rem; font-weight: 700;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .health-summary, .panel-note {
+      font-family: "Space Mono", monospace; font-size: .68rem; color: var(--text-muted);
+    }
+    .chev { color: var(--text-dim); transition: transform .2s; font-size: .8rem; }
+    .panel.open .chev { transform: rotate(180deg); }
+    .panel-body { display: none; padding: .85rem 1rem 1rem; }
+    .panel.open .panel-body { display: block; }
+    .panel.always-open .panel-body { display: block; }
+    .panel.always-open .panel-head { border-bottom: 1px solid var(--border); }
+
+    .overview-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .7rem;
+    }
+    .mkt-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: .75rem .8rem; cursor: pointer; transition: .15s;
+    }
+    .mkt-card:hover { border-color: rgba(0,212,255,.4); background: var(--bg-card-hover); }
+    .mkt-card.active { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(0,212,255,.25); }
+    .mkt-card .sym {
+      font-family: "Space Mono", monospace; font-weight: 700; font-size: .85rem; color: var(--cyan);
+    }
+    .mkt-card .px {
+      font-family: "Space Mono", monospace; font-size: .95rem; font-weight: 700; margin-top: .15rem;
+    }
+    .mkt-card .chg { font-family: "Space Mono", monospace; font-size: .72rem; }
+    .mkt-card .chg.up, .bias.up, .chg-up { color: var(--green); }
+    .mkt-card .chg.down, .bias.down, .chg-down { color: var(--red); }
+    .mkt-card .chg.flat { color: var(--text-muted); }
+    .bias-pill {
+      display: inline-block; margin-top: .35rem;
+      font-family: "Space Mono", monospace; font-size: .62rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em;
+      padding: .15rem .4rem; border-radius: 6px;
+    }
+    .bias-pill.up { background: rgba(0,255,136,.12); color: var(--green); border: 1px solid rgba(0,255,136,.3); }
+    .bias-pill.down { background: rgba(255,92,122,.12); color: var(--red); border: 1px solid rgba(255,92,122,.3); }
+    .bias-pill.neutral { background: rgba(255,193,74,.1); color: var(--amber); border: 1px solid rgba(255,193,74,.3); }
+    .spark-wrap { height: 36px; margin-top: .4rem; }
+    .spark-wrap canvas { width: 100% !important; height: 36px !important; }
+
+    .chart-desk { display: flex; flex-direction: column; gap: .75rem; }
+    .chart-toolbar {
+      display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
+    }
+    .chart-toolbar input, .chart-toolbar select, .tv-input {
+      background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: .4rem .55rem; font-family: "Space Mono", monospace; font-size: .75rem;
+    }
+    .chart-toolbar input { width: 110px; }
+    .chart-box {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: .75rem; height: 280px; position: relative;
+    }
+    .chart-box canvas { max-height: 100%; }
+    .analysis-box {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: .85rem 1rem;
+    }
+    .analysis-box h3 {
+      font-family: Syne, sans-serif; font-size: .95rem; margin-bottom: .4rem;
+      display: flex; flex-wrap: wrap; align-items: center; gap: .5rem;
+    }
+    .analysis-box p { font-size: .86rem; color: var(--text-muted); margin-bottom: .55rem; }
+    .analysis-box ul {
+      margin: .4rem 0 0 1.1rem; font-size: .8rem; color: var(--text-dim);
+    }
+    .analysis-box li { margin: .2rem 0; }
+    .metrics-row {
+      display: flex; flex-wrap: wrap; gap: .45rem; margin: .5rem 0;
+    }
+    .metric {
+      font-family: "Space Mono", monospace; font-size: .68rem;
+      padding: .25rem .45rem; border-radius: 6px;
+      background: rgba(159,122,234,.1); border: 1px solid rgba(159,122,234,.25); color: var(--purple);
+    }
+    .disclaimer {
+      font-family: "Space Mono", monospace; font-size: .62rem; color: var(--text-dim);
+      margin-top: .55rem; line-height: 1.4;
+    }
+
+    /* TradingView */
+    .tv-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: .85rem; }
+    @media (max-width: 900px) { .tv-grid { grid-template-columns: 1fr; } }
+    .tv-help { font-size: .82rem; color: var(--text-muted); margin-bottom: .65rem; line-height: 1.45; }
+    .tv-help code {
+      font-family: "Space Mono", monospace; font-size: .72rem;
+      background: rgba(0,212,255,.08); padding: .1rem .3rem; border-radius: 4px; color: var(--cyan);
+    }
+    textarea.tv-input {
+      width: 100%; min-height: 90px; resize: vertical; margin-bottom: .5rem;
+    }
+    .tv-tags { display: flex; flex-wrap: wrap; gap: .35rem; margin: .5rem 0; }
+    .tv-widget-wrap {
+      min-height: 420px; border-radius: 12px; overflow: hidden;
+      border: 1px solid var(--border); background: #0b0e14;
+    }
+    .tv-widget-wrap iframe { width: 100%; height: 420px; border: 0; }
+
+    .source-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: .7rem;
+    }
+    .source-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: .8rem .9rem;
+      border-left: 3px solid var(--src-color, var(--purple));
+    }
+    .source-card.disabled { opacity: .72; }
+    .source-card .row1 { display: flex; justify-content: space-between; gap: .5rem; margin-bottom: .3rem; }
+    .source-card .name { font-weight: 600; font-size: .9rem; }
+    .badge {
+      font-family: "Space Mono", monospace; font-size: .62rem; text-transform: uppercase;
+      letter-spacing: .04em; padding: .18rem .42rem; border-radius: 6px; white-space: nowrap;
+    }
+    .badge.ok { color: var(--green); background: rgba(0,255,136,.12); border: 1px solid rgba(0,255,136,.3); }
+    .badge.error { color: var(--red); background: rgba(255,92,122,.12); border: 1px solid rgba(255,92,122,.3); }
+    .badge.pending { color: var(--amber); background: rgba(255,193,74,.12); border: 1px solid rgba(255,193,74,.3); }
+    .badge.disabled { color: var(--text-dim); background: rgba(92,100,120,.15); border: 1px solid var(--border); }
+    .source-meta { font-size: .76rem; color: var(--text-muted); }
+    .source-meta .pub { color: var(--cyan); }
+    .source-stats { font-family: "Space Mono", monospace; font-size: .66rem; color: var(--text-dim); margin-top: .3rem; }
+    .source-error {
+      margin-top: .4rem; font-family: "Space Mono", monospace; font-size: .66rem;
+      color: var(--red); word-break: break-word; line-height: 1.35; max-height: 4em; overflow: hidden;
+    }
+
+    .filters {
+      margin-top: 1.1rem; display: flex; flex-wrap: wrap; gap: .45rem; align-items: center;
+    }
+    .filters .label {
+      font-family: "Space Mono", monospace; font-size: .68rem; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: .05em; margin-right: .2rem;
+    }
+    .chip {
+      font-size: .78rem; padding: .32rem .7rem; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted);
+      cursor: pointer; display: inline-flex; align-items: center; gap: .35rem; transition: .15s;
+    }
+    .chip .swatch { width: 8px; height: 8px; border-radius: 50%; background: var(--src-color, #888); }
+    .chip:hover { border-color: var(--text-dim); color: var(--text); }
+    .chip.active {
+      border-color: color-mix(in srgb, var(--src-color, var(--green)) 55%, transparent);
+      background: color-mix(in srgb, var(--src-color, var(--green)) 14%, transparent);
+      color: var(--text);
+    }
+    .chip.all.active { border-color: rgba(0,255,136,.5); background: rgba(0,255,136,.1); color: var(--green); }
+
+    .toolbar {
+      margin-top: .9rem; display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: center; gap: .65rem;
+    }
+    .story-count { font-family: "Space Mono", monospace; font-size: .72rem; color: var(--text-muted); }
+    select {
+      background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: .32rem .5rem; font-family: "Space Mono", monospace; font-size: .72rem;
+    }
+
+    .stories {
+      margin-top: .95rem;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: .95rem;
+    }
+    .story-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.05rem 1.1rem .95rem; display: flex; flex-direction: column; gap: .7rem;
+      transition: .15s; position: relative; overflow: hidden;
+    }
+    .story-card::before {
+      content: ""; position: absolute; inset: 0 0 auto 0; height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--cyan), var(--purple));
+      opacity: 0; transition: .2s;
+    }
+    .story-card:hover { background: var(--bg-card-hover); border-color: var(--border-glow); transform: translateY(-2px); }
+    .story-card:hover::before { opacity: 1; }
+    .story-card.multi { border-color: rgba(159,122,234,.35); }
+    .story-top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .outlet-badge {
+      font-family: "Space Mono", monospace; font-size: .66rem; font-weight: 700;
+      padding: .22rem .5rem; border-radius: 8px;
+      background: rgba(159,122,234,.15); border: 1px solid rgba(159,122,234,.4); color: var(--purple);
+    }
+    .outlet-badge.one {
+      background: rgba(0,212,255,.08); border-color: rgba(0,212,255,.25); color: var(--cyan);
+    }
+    .time-ago { font-family: "Space Mono", monospace; font-size: .66rem; color: var(--text-dim); }
+    .story-title {
+      font-family: "DM Sans", sans-serif; font-size: 1.02rem; font-weight: 600;
+      line-height: 1.4; color: var(--text); text-decoration: none;
+    }
+    .story-title:hover { color: var(--green); }
+    .story-title .hl {
+      font-family: "Space Mono", monospace; font-size: .78em; font-weight: 700;
+      color: var(--green); background: rgba(0,255,136,.1); padding: 0 .2em; border-radius: 4px;
+    }
+    .story-summary {
+      font-size: .8rem; color: var(--text-muted);
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .symbol-row { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .symbol-tag {
+      font-family: "Space Mono", monospace; font-size: .68rem; font-weight: 700;
+      padding: .18rem .45rem; border-radius: 6px;
+      background: rgba(0,212,255,.1); border: 1px solid rgba(0,212,255,.3); color: var(--cyan);
+      cursor: pointer;
+    }
+    .symbol-tag:hover { border-color: var(--cyan); }
+    .source-chips { display: flex; flex-wrap: wrap; gap: .38rem; margin-top: auto; padding-top: .15rem; }
+    a.src-chip {
+      font-size: .7rem; font-weight: 600; padding: .26rem .5rem; border-radius: 8px;
+      text-decoration: none; color: var(--text);
+      background: color-mix(in srgb, var(--src-color) 16%, transparent);
+      border: 1px solid color-mix(in srgb, var(--src-color) 42%, transparent);
+      transition: .12s;
+    }
+    a.src-chip:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .empty, .loading {
+      grid-column: 1 / -1; text-align: center; padding: 2rem 1rem;
+      color: var(--text-muted); font-family: "Space Mono", monospace; font-size: .82rem;
+    }
+    footer {
+      margin-top: 2.4rem; text-align: center;
+      font-family: "Space Mono", monospace; font-size: .66rem; color: var(--text-dim);
+    }
+    footer a { color: var(--cyan); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .app { padding: .7rem .7rem 2rem; }
+      header.top { position: static; }
+      .stories { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <div class="logo-mark">$Z</div>
+        <div>
+          <h1>ZenvX StockMarket</h1>
+          <div class="tag">News · charts · bias heuristic · TradingView</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="live-pill" id="livePill"><span class="dot"></span><span id="liveLabel">Live</span></div>
+        <div class="sync-time" id="syncTime">Sync: —</div>
+        <div class="fetch-ms" id="fetchMs"></div>
+        <button class="btn" id="refreshBtn" type="button">↻ Refresh</button>
+        <button class="btn ghost" id="healthToggle" type="button">Sources</button>
+      </div>
+    </header>
+
+    <div class="pulse-strip" id="pulseStrip">
+      <span class="plabel">News pulse</span>
+      <span style="font-family:Space Mono,monospace;font-size:.72rem;color:var(--text-dim)">scanning…</span>
+    </div>
+
+    <!-- Charts + analysis desk -->
+    <div class="desk">
+      <section class="panel always-open flat">
+        <div class="panel-head static">
+          <h2><span style="color:var(--green)">▣</span> Price desk</h2>
+          <span class="panel-note" id="overviewNote">loading free prices…</span>
+        </div>
+        <div class="panel-body">
+          <div class="overview-grid" id="overviewGrid">
+            <div class="loading">Fetching market overview…</div>
+          </div>
+          <div class="disclaimer" style="margin-top:.75rem">
+            Free public quotes (may be delayed). Bias is a local technical heuristic — not financial advice.
+          </div>
+        </div>
+      </section>
+
+      <section class="panel always-open flat">
+        <div class="panel-head static">
+          <h2><span style="color:var(--cyan)">📈</span> Chart &amp; bias</h2>
+          <span class="panel-note" id="chartSymLabel">—</span>
+        </div>
+        <div class="panel-body chart-desk">
+          <div class="chart-toolbar">
+            <input id="symInput" type="text" placeholder="NVDA" maxlength="16" />
+            <select id="rangeSelect">
+              <option value="5d">5d</option>
+              <option value="1mo">1mo</option>
+              <option value="3mo" selected>3mo</option>
+              <option value="6mo">6mo</option>
+              <option value="1y">1y</option>
+            </select>
+            <button class="btn green" id="loadChartBtn" type="button">Load</button>
+            <a class="btn ghost" id="openTvBtn" href="#" target="_blank" rel="noopener">Open TV</a>
+          </div>
+          <div class="chart-box"><canvas id="priceChart"></canvas></div>
+          <div class="analysis-box" id="analysisBox">
+            <p style="color:var(--text-dim);font-family:Space Mono,monospace;font-size:.75rem">
+              Select a symbol above or from the price desk.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TradingView connect -->
+    <section class="panel always-open">
+      <div class="panel-head static">
+        <h2><span style="color:var(--purple)">◈</span> TradingView connect</h2>
+        <span class="panel-note">free widget + your watchlist symbols</span>
+      </div>
+      <div class="panel-body">
+        <div class="tv-grid">
+          <div>
+            <p class="tv-help">
+              TradingView does <strong>not</strong> offer a free private account API.
+              Paste symbols from your TV watchlist (comma or newline separated), e.g.
+              <code>NASDAQ:NVDA, NSE:RELIANCE, AAPL</code>.
+              We resolve free price charts and embed TradingView’s official chart widget for that symbol.
+              Your list is saved in this browser only.
+            </p>
+            <textarea class="tv-input" id="tvWatchInput" placeholder="NASDAQ:NVDA&#10;NSE:RELIANCE&#10;AAPL&#10;BTC"></textarea>
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem">
+              <button class="btn green" id="tvImportBtn" type="button">Import / refresh</button>
+              <button class="btn ghost" id="tvClearBtn" type="button">Clear saved</button>
+            </div>
+            <div class="tv-tags" id="tvTags"></div>
+            <div class="disclaimer" id="tvNote"></div>
+          </div>
+          <div>
+            <div class="chart-toolbar" style="margin-bottom:.5rem">
+              <span class="panel-note">Widget symbol</span>
+              <input id="tvWidgetSym" type="text" value="NASDAQ:NVDA" style="width:160px" />
+              <button class="btn" id="tvWidgetLoad" type="button">Load widget</button>
+            </div>
+            <div class="tv-widget-wrap" id="tvWidget"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel open" id="healthPanel">
+      <div class="panel-head" id="healthHead">
+        <h2><span style="color:var(--cyan)">◉</span> Source health</h2>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <span class="health-summary" id="healthSummary">loading…</span>
+          <span class="chev">▼</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="source-grid" id="sourceGrid"></div>
+      </div>
+    </section>
+
+    <div class="filters" id="filters">
+      <span class="label">News sources</span>
+      <button class="chip all active" data-source="all" type="button">All</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="story-count" id="storyCount">Fetching market stories…</div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <span class="label" style="font-family:Space Mono,monospace;font-size:.68rem;color:var(--text-dim)">Window</span>
+        <select id="hoursSelect">
+          <option value="6">6h</option>
+          <option value="12">12h</option>
+          <option value="24" selected>24h</option>
+          <option value="48">48h</option>
+        </select>
+      </div>
+    </div>
+
+    <main class="stories" id="stories">
+      <div class="loading">Booting market desk…</div>
+    </main>
+
+    <footer>
+      ZenvX StockMarket · local news + free charts · heuristic bias is not advice ·
+      <a href="/api/market-overview" target="_blank">/api/market-overview</a> ·
+      <a href="/api/sources" target="_blank">/api/sources</a>
+    </footer>
+  </div>
+
+  <script>
+    const POLL_MS = 30_000;
+    const TV_KEY = "zenvx_tv_watchlist";
+    let activeSources = new Set(["all"]);
+    let activeSymbol = null;
+    let chartSymbol = "NVDA";
+    let sourcesCache = [];
+    let refreshing = false;
+    let priceChart = null;
+    const sparkCharts = {};
+
+    const $ = (id) => document.getElementById(id);
+
+    function fmtTime(iso) {
+      if (!iso) return "—";
+      try {
+        return new Date(iso).toLocaleString(undefined, {
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+          day: "2-digit", month: "short",
+        });
+      } catch { return iso; }
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return "";
+      const sec = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+      if (sec < 60) return `${sec}s`;
+      if (sec < 3600) return `${Math.floor(sec / 60)}m`;
+      if (sec < 86400) return `${Math.floor(sec / 3600)}h`;
+      return `${Math.floor(sec / 86400)}d`;
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    async function fetchJSON(url, opts) {
+      const res = await fetch(url, opts);
+      if (!res.ok) {
+        let detail = res.statusText;
+        try {
+          const j = await res.json();
+          detail = j.detail || JSON.stringify(j);
+        } catch {}
+        throw new Error(`${res.status}: ${detail}`);
+      }
+      return res.json();
+    }
+
+    function highlightSymbols(title, symbols) {
+      let html = escapeHtml(title);
+      if (!symbols || !symbols.length) return html;
+      const sorted = [...symbols].sort((a, b) => b.length - a.length);
+      for (const sym of sorted) {
+        const re = new RegExp(`\\b(${sym.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})\\b`, "gi");
+        html = html.replace(re, '<span class="hl">$1</span>');
+      }
+      return html;
+    }
+
+    function fmtPrice(p, ccy) {
+      if (p == null) return "—";
+      const n = Number(p);
+      if (n >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+      if (n >= 1) return n.toFixed(2);
+      return n.toPrecision(4);
+    }
+
+    // ---- Market overview + main chart ----
+    function destroySparks() {
+      Object.values(sparkCharts).forEach((c) => c.destroy());
+      for (const k of Object.keys(sparkCharts)) delete sparkCharts[k];
+    }
+
+    function renderOverview(data) {
+      const cards = data.cards || [];
+      $("overviewNote").textContent = cards.length
+        ? `${cards.length} symbols · free quotes`
+        : "no quotes";
+      if (!cards.length) {
+        $("overviewGrid").innerHTML =
+          `<div class="loading">${escapeHtml((data.errors && data.errors[0] && data.errors[0].error) || "No price data")}</div>`;
+        return;
+      }
+      destroySparks();
+      $("overviewGrid").innerHTML = cards.map((c) => {
+        const chgCls = c.change_pct > 0.05 ? "up" : (c.change_pct < -0.05 ? "down" : "flat");
+        const sign = c.change_pct > 0 ? "+" : "";
+        return `
+          <div class="mkt-card ${chartSymbol === c.symbol ? "active" : ""}" data-sym="${escapeHtml(c.symbol)}" data-tv="${escapeHtml(c.tradingview_symbol || "")}">
+            <div class="sym">${escapeHtml(c.symbol)}</div>
+            <div class="px">${fmtPrice(c.price, c.currency)}</div>
+            <div class="chg ${chgCls}">${sign}${Number(c.change_pct).toFixed(2)}%</div>
+            <span class="bias-pill ${escapeHtml(c.bias)}">${escapeHtml(c.bias)} · ${escapeHtml(c.confidence)}</span>
+            <div class="spark-wrap"><canvas id="spark_${escapeHtml(c.symbol)}"></canvas></div>
+          </div>`;
+      }).join("");
+
+      $("overviewGrid").querySelectorAll(".mkt-card").forEach((el) => {
+        el.addEventListener("click", () => {
+          selectSymbol(el.dataset.sym, el.dataset.tv);
+        });
+      });
+
+      cards.forEach((c) => {
+        const canvas = document.getElementById(`spark_${c.symbol}`);
+        if (!canvas || !c.spark || !c.spark.length) return;
+        const up = c.spark[c.spark.length - 1] >= c.spark[0];
+        sparkCharts[c.symbol] = new Chart(canvas, {
+          type: "line",
+          data: {
+            labels: c.spark.map((_, i) => i),
+            datasets: [{
+              data: c.spark,
+              borderColor: up ? "#00FF88" : "#ff5c7a",
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.3,
+              fill: false,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: { x: { display: false }, y: { display: false } },
+            animation: false,
+          },
+        });
+      });
+    }
+
+    function selectSymbol(sym, tvSym) {
+      chartSymbol = sym;
+      activeSymbol = sym;
+      $("symInput").value = sym;
+      if (tvSym) $("tvWidgetSym").value = tvSym;
+      loadAnalysis();
+      loadStories();
+      loadPulse();
+      loadOverview(); // re-highlight active card
+    }
+
+    async function loadOverview() {
+      try {
+        // Prefer saved TV list if present
+        const saved = loadSavedWatch();
+        let url = "/api/market-overview";
+        if (saved.length) {
+          const bare = saved.map((s) => (s.includes(":") ? s.split(":").pop() : s)).slice(0, 12);
+          url += `?symbols=${encodeURIComponent(bare.join(","))}`;
+        }
+        const data = await fetchJSON(url);
+        renderOverview(data);
+      } catch (e) {
+        $("overviewGrid").innerHTML = `<div class="loading">Overview failed: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    async function loadAnalysis() {
+      const sym = ($("symInput").value || chartSymbol || "NVDA").trim().toUpperCase();
+      const range = $("rangeSelect").value;
+      chartSymbol = sym;
+      $("chartSymLabel").textContent = sym;
+      $("analysisBox").innerHTML = `<p style="font-family:Space Mono,monospace;font-size:.75rem;color:var(--text-dim)">Loading ${escapeHtml(sym)}…</p>`;
+      try {
+        const data = await fetchJSON(`/api/analysis/${encodeURIComponent(sym)}?range=${range}&interval=1d`);
+        renderMainChart(data);
+        renderAnalysis(data);
+        $("openTvBtn").href = data.tradingview_url || "#";
+        if (data.tradingview_symbol) {
+          $("tvWidgetSym").value = data.tradingview_symbol;
+        }
+        // highlight cards
+        document.querySelectorAll(".mkt-card").forEach((el) => {
+          el.classList.toggle("active", el.dataset.sym === sym);
+        });
+      } catch (e) {
+        $("analysisBox").innerHTML = `<p style="color:var(--red)">Chart/analysis failed: ${escapeHtml(e.message)}</p>`;
+        if (priceChart) { priceChart.destroy(); priceChart = null; }
+      }
+    }
+
+    function renderMainChart(data) {
+      const labels = (data.chart.labels || []).map((t) => {
+        const d = new Date(t * 1000);
+        return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      });
+      const closes = data.chart.closes || [];
+      const up = closes.length > 1 && closes[closes.length - 1] >= closes[0];
+      const color = up ? "#00FF88" : "#ff5c7a";
+      const ctx = $("priceChart").getContext("2d");
+      if (priceChart) priceChart.destroy();
+      priceChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: data.symbol,
+            data: closes,
+            borderColor: color,
+            backgroundColor: up ? "rgba(0,255,136,0.08)" : "rgba(255,92,122,0.08)",
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 3,
+            tension: 0.15,
+            fill: true,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "#0c0f16",
+              titleColor: "#00D4FF",
+              bodyColor: "#e9edf5",
+              borderColor: "#1c2233",
+              borderWidth: 1,
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: "#5a6276", maxTicksLimit: 8, font: { family: "Space Mono", size: 10 } },
+              grid: { color: "rgba(28,34,51,0.6)" },
+            },
+            y: {
+              ticks: { color: "#5a6276", font: { family: "Space Mono", size: 10 } },
+              grid: { color: "rgba(28,34,51,0.6)" },
+            },
+          },
+        },
+      });
+    }
+
+    function renderAnalysis(data) {
+      const a = data.analysis || {};
+      const m = a.metrics || {};
+      const chgCls = data.change_pct >= 0 ? "chg-up" : "chg-down";
+      const sign = data.change_pct >= 0 ? "+" : "";
+      const signals = (a.signals || []).map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+      $("analysisBox").innerHTML = `
+        <h3>
+          ${escapeHtml(data.symbol)}
+          <span class="${chgCls}" style="font-family:Space Mono,monospace;font-size:.85rem">
+            ${fmtPrice(data.price)} ${sign}${Number(data.change_pct).toFixed(2)}%
+          </span>
+          <span class="bias-pill ${escapeHtml(a.bias)}">${escapeHtml(a.bias)} · ${escapeHtml(a.confidence)}</span>
+        </h3>
+        <p>${escapeHtml(a.summary || "")}</p>
+        <div class="metrics-row">
+          ${m.ret_5d_pct != null ? `<span class="metric">5d ${m.ret_5d_pct > 0 ? "+" : ""}${m.ret_5d_pct}%</span>` : ""}
+          ${m.ret_20d_pct != null ? `<span class="metric">20d ${m.ret_20d_pct > 0 ? "+" : ""}${m.ret_20d_pct}%</span>` : ""}
+          ${m.rsi14 != null ? `<span class="metric">RSI ${m.rsi14}</span>` : ""}
+          ${m.sma20 != null ? `<span class="metric">SMA20 ${fmtPrice(m.sma20)}</span>` : ""}
+          ${m.sma50 != null ? `<span class="metric">SMA50 ${fmtPrice(m.sma50)}</span>` : ""}
+          <span class="metric">score ${a.score > 0 ? "+" : ""}${a.score}</span>
+        </div>
+        <ul>${signals}</ul>
+        <div class="disclaimer">${escapeHtml(a.disclaimer || data.disclaimer || "Not financial advice.")}</div>
+      `;
+    }
+
+    // ---- TradingView ----
+    function loadSavedWatch() {
+      try {
+        const raw = localStorage.getItem(TV_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch { return []; }
+    }
+
+    function saveWatch(list) {
+      localStorage.setItem(TV_KEY, JSON.stringify(list));
+    }
+
+    function renderTvTags(list) {
+      $("tvTags").innerHTML = list.map((s) =>
+        `<button type="button" class="sym-pill" data-tv="${escapeHtml(s)}">${escapeHtml(s)}</button>`
+      ).join("");
+      $("tvTags").querySelectorAll(".sym-pill").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const tv = btn.dataset.tv;
+          $("tvWidgetSym").value = tv;
+          loadTvWidget(tv);
+          const bare = tv.includes(":") ? tv.split(":").pop() : tv;
+          selectSymbol(bare.replace(".NS", ""), tv);
+        });
+      });
+    }
+
+    function loadTvWidget(symbol) {
+      const sym = symbol || $("tvWidgetSym").value || "NASDAQ:NVDA";
+      $("tvWidgetSym").value = sym;
+      // Free official TradingView chart widget embed (no account/API key)
+      const params = new URLSearchParams({
+        frameElementId: "tv_frame",
+        symbol: sym,
+        interval: "D",
+        hidesidetoolbar: "0",
+        hidetoptoolbar: "0",
+        symboledit: "1",
+        saveimage: "0",
+        toolbarbg: "0b0e14",
+        studies: "[]",
+        theme: "dark",
+        style: "1",
+        timezone: "Etc/UTC",
+        withdateranges: "1",
+        showpopupbutton: "1",
+        studies_overrides: "{}",
+        overrides: "{}",
+        enabled_features: "[]",
+        disabled_features: "[]",
+        locale: "en",
+        utm_source: "localhost",
+        utm_medium: "widget",
+        utm_campaign: "chart",
+        utm_term: sym,
+      });
+      const src = `https://s.tradingview.com/widgetembed/?${params.toString()}`;
+      $("tvWidget").innerHTML =
+        `<iframe id="tv_frame" title="TradingView ${escapeHtml(sym)}" src="${src}"
+          style="width:100%;height:420px;border:0;background:#0b0e14" allowfullscreen></iframe>`;
+    }
+
+    async function importTvWatchlist() {
+      const text = $("tvWatchInput").value.trim();
+      if (!text) {
+        alert("Paste some symbols first (e.g. NASDAQ:NVDA, NSE:RELIANCE)");
+        return;
+      }
+      try {
+        const data = await fetchJSON("/api/tradingview/watchlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ symbols: text }),
+        });
+        const list = (data.resolved || [])
+          .filter((r) => r.tradingview_symbol)
+          .map((r) => r.tradingview_symbol);
+        saveWatch(list);
+        renderTvTags(list);
+        $("tvNote").textContent = data.note || "Watchlist saved in this browser.";
+        if (data.overview) renderOverview(data.overview);
+        if (list[0]) {
+          $("tvWidgetSym").value = list[0];
+          loadTvWidget(list[0]);
+        }
+      } catch (e) {
+        $("tvNote").textContent = "Import failed: " + e.message;
+      }
+    }
+
+    // ---- News (existing) ----
+    function renderSources(data) {
+      sourcesCache = data.sources || [];
+      const enabled = sourcesCache.filter((s) => s.enabled !== false);
+      const ok = enabled.filter((s) => s.status === "ok").length;
+      const err = enabled.filter((s) => s.status === "error").length;
+      const pending = enabled.filter((s) => s.status === "pending").length;
+      const disabled = sourcesCache.filter((s) => s.status === "disabled" || s.enabled === false).length;
+      $("healthSummary").textContent =
+        `${ok}/${enabled.length} ok · ${err} err · ${pending} pending · ${disabled} off`;
+
+      $("sourceGrid").innerHTML = sourcesCache.map((s) => {
+        const st = s.status || "pending";
+        const errHtml = s.last_error
+          ? `<div class="source-error" title="${escapeHtml(s.last_error)}">${escapeHtml(s.last_error)}</div>` : "";
+        return `
+          <div class="source-card ${st === "disabled" ? "disabled" : ""}" style="--src-color:${escapeHtml(s.color)}">
+            <div class="row1">
+              <div class="name">${escapeHtml(s.name)}</div>
+              <span class="badge ${st}">${escapeHtml(st)}</span>
+            </div>
+            <div class="source-meta"><span class="pub">${escapeHtml(s.publisher)}</span> · ${escapeHtml(s.type)}</div>
+            <div class="source-stats">
+              articles: ${s.article_count ?? 0}${s.last_batch != null ? ` · batch: ${s.last_batch}` : ""}
+              · ${escapeHtml(s.fetch_mode || "rss")}
+              <br/>last ok: ${fmtTime(s.last_success)}
+            </div>
+            ${errHtml}
+          </div>`;
+      }).join("");
+
+      const filters = $("filters");
+      const existing = new Set([...filters.querySelectorAll(".chip[data-source]")].map((c) => c.dataset.source));
+      sourcesCache.filter((s) => s.enabled !== false && s.status !== "disabled").forEach((s) => {
+        if (existing.has(s.id)) return;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip";
+        btn.dataset.source = s.id;
+        btn.style.setProperty("--src-color", s.color);
+        btn.innerHTML = `<span class="swatch"></span>${escapeHtml(s.name)}`;
+        btn.addEventListener("click", () => toggleFilter(s.id));
+        filters.appendChild(btn);
+      });
+
+      $("syncTime").textContent = `Sync: ${fmtTime(data.last_full_sync)}`;
+      if (data.last_fetch_duration_ms != null) $("fetchMs").textContent = `fetch ${data.last_fetch_duration_ms}ms`;
+      const live = $("livePill");
+      if (ok > 0) { live.classList.remove("offline"); $("liveLabel").textContent = "Live"; }
+      else if (pending > 0) { live.classList.add("offline"); $("liveLabel").textContent = "Fetching"; }
+      else { live.classList.add("offline"); $("liveLabel").textContent = "No feeds"; }
+    }
+
+    function renderPulse(data) {
+      const strip = $("pulseStrip");
+      const top = data.top_symbols || [];
+      if (!top.length) {
+        strip.innerHTML = `<span class="plabel">News pulse</span>
+          <span style="font-family:Space Mono,monospace;font-size:.72rem;color:var(--text-dim)">no tickers yet</span>`;
+        return;
+      }
+      strip.innerHTML =
+        `<span class="plabel">News pulse</span>` +
+        top.map((t) =>
+          `<button type="button" class="sym-pill ${activeSymbol === t.symbol ? "active" : ""}" data-sym="${escapeHtml(t.symbol)}">
+            ${escapeHtml(t.symbol)}<span class="n">${t.mentions}</span>
+          </button>`
+        ).join("") +
+        (activeSymbol ? `<button type="button" class="sym-pill clear" data-sym="">clear filter</button>` : "");
+      strip.querySelectorAll(".sym-pill").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const s = btn.dataset.sym;
+          if (!s) {
+            activeSymbol = null;
+            loadStories();
+            loadPulse();
+            return;
+          }
+          selectSymbol(s);
+        });
+      });
+    }
+
+    function toggleFilter(id) {
+      if (id === "all") activeSources = new Set(["all"]);
+      else {
+        activeSources.delete("all");
+        if (activeSources.has(id)) activeSources.delete(id);
+        else activeSources.add(id);
+        if (activeSources.size === 0) activeSources = new Set(["all"]);
+      }
+      document.querySelectorAll(".chip").forEach((chip) => {
+        const sid = chip.dataset.source;
+        chip.classList.toggle("active", activeSources.has("all") ? sid === "all" : activeSources.has(sid));
+      });
+      loadStories();
+    }
+
+    function renderStories(data) {
+      const list = data.stories || [];
+      $("storyCount").textContent =
+        `${list.length} stories · ${data.hours}h` +
+        (activeSymbol ? ` · $${activeSymbol}` : "") +
+        ` · groups ${data.total ?? list.length}`;
+
+      if (!list.length) {
+        $("stories").innerHTML = `<div class="empty">No stories yet.</div>`;
+        return;
+      }
+
+      $("stories").innerHTML = list.map((st) => {
+        const multi = st.outlet_count > 1;
+        const badge = multi ? `${st.outlet_count} outlets` : "1 outlet";
+        const chips = (st.sources || []).map((src) => `
+          <a class="src-chip" href="${escapeHtml(src.link)}" target="_blank" rel="noopener"
+             style="--src-color:${escapeHtml(src.color)}"
+             title="${escapeHtml(src.publisher)}">${escapeHtml(src.name)}</a>`).join("");
+        const syms = (st.symbols || []).map((s) =>
+          `<button type="button" class="symbol-tag" data-sym="${escapeHtml(s)}">${escapeHtml(s)}</button>`
+        ).join("");
+        const summary = st.summary
+          ? `<div class="story-summary">${escapeHtml(st.summary)}</div>` : "";
+        return `
+          <article class="story-card ${multi ? "multi" : ""}">
+            <div class="story-top">
+              <span class="outlet-badge ${multi ? "" : "one"}">${badge}</span>
+              <span class="time-ago">${timeAgo(st.published_ts)} ago</span>
+            </div>
+            <a class="story-title" href="${escapeHtml(st.link)}" target="_blank" rel="noopener">
+              ${highlightSymbols(st.title, st.symbols)}
+            </a>
+            ${summary}
+            ${syms ? `<div class="symbol-row">${syms}</div>` : ""}
+            <div class="source-chips">${chips}</div>
+          </article>`;
+      }).join("");
+
+      $("stories").querySelectorAll(".symbol-tag").forEach((btn) => {
+        btn.addEventListener("click", () => selectSymbol(btn.dataset.sym));
+      });
+    }
+
+    async function loadSources() {
+      try {
+        const data = await fetchJSON("/api/sources");
+        renderSources(data);
+      } catch (e) {
+        $("healthSummary").textContent = `API error: ${e.message}`;
+        $("livePill").classList.add("offline");
+        $("liveLabel").textContent = "Offline";
+      }
+    }
+
+    async function loadStories() {
+      try {
+        const hours = $("hoursSelect").value;
+        let url = `/api/stories?hours=${hours}&limit=100`;
+        if (!activeSources.has("all")) url += `&source=${[...activeSources].join(",")}`;
+        if (activeSymbol) url += `&symbol=${encodeURIComponent(activeSymbol)}`;
+        const data = await fetchJSON(url);
+        renderStories(data);
+        if (data.last_full_sync) $("syncTime").textContent = `Sync: ${fmtTime(data.last_full_sync)}`;
+        if (data.last_fetch_duration_ms != null) $("fetchMs").textContent = `fetch ${data.last_fetch_duration_ms}ms`;
+      } catch (e) {
+        $("stories").innerHTML = `<div class="empty">Failed: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    async function loadPulse() {
+      try {
+        const hours = $("hoursSelect").value;
+        const data = await fetchJSON(`/api/pulse?hours=${hours}`);
+        renderPulse(data);
+      } catch { /* non-fatal */ }
+    }
+
+    async function poll() {
+      await Promise.all([loadSources(), loadStories(), loadPulse()]);
+    }
+
+    async function manualRefresh() {
+      if (refreshing) return;
+      refreshing = true;
+      const btn = $("refreshBtn");
+      btn.disabled = true;
+      btn.textContent = "↻ Fetching…";
+      try {
+        await fetchJSON("/api/refresh", { method: "POST" });
+        for (let i = 0; i < 8; i++) {
+          await new Promise((r) => setTimeout(r, 1500));
+          await poll();
+          const enabled = sourcesCache.filter((s) => s.enabled !== false && s.status !== "disabled");
+          if (enabled.length && enabled.every((s) => s.status !== "pending")) break;
+        }
+        await loadOverview();
+        await loadAnalysis();
+      } catch (e) {
+        alert("Refresh failed: " + e.message);
+      } finally {
+        refreshing = false;
+        btn.disabled = false;
+        btn.textContent = "↻ Refresh";
+      }
+    }
+
+    // events
+    $("healthHead").addEventListener("click", () => $("healthPanel").classList.toggle("open"));
+    $("healthToggle").addEventListener("click", () => $("healthPanel").classList.toggle("open"));
+    $("refreshBtn").addEventListener("click", manualRefresh);
+    $("hoursSelect").addEventListener("change", () => { loadStories(); loadPulse(); });
+    document.querySelector('.chip[data-source="all"]').addEventListener("click", () => toggleFilter("all"));
+    $("loadChartBtn").addEventListener("click", () => {
+      activeSymbol = ($("symInput").value || "").trim().toUpperCase() || null;
+      loadAnalysis();
+      loadStories();
+    });
+    $("symInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") $("loadChartBtn").click();
+    });
+    $("rangeSelect").addEventListener("change", loadAnalysis);
+    $("tvImportBtn").addEventListener("click", importTvWatchlist);
+    $("tvClearBtn").addEventListener("click", () => {
+      localStorage.removeItem(TV_KEY);
+      $("tvWatchInput").value = "";
+      renderTvTags([]);
+      $("tvNote").textContent = "Cleared local watchlist.";
+    });
+    $("tvWidgetLoad").addEventListener("click", () => loadTvWidget());
+
+    // boot
+    const saved = loadSavedWatch();
+    if (saved.length) {
+      $("tvWatchInput").value = saved.join("\n");
+      renderTvTags(saved);
+      $("tvWidgetSym").value = saved[0];
+    }
+    loadTvWidget($("tvWidgetSym").value);
+    $("symInput").value = chartSymbol;
+    poll();
+    loadOverview();
+    loadAnalysis();
+    setInterval(poll, POLL_MS);
+    setInterval(loadOverview, 120_000);
+  </script>
+</body>
+</html>
